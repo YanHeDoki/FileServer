@@ -63,3 +63,24 @@ func (fs *FileStream) Read(p []byte) (int, error) {
 func (fs *FileStream) Close() error {
 	return fs.file.Close()
 }
+
+func GetFiles(path string) ([]string, error) {
+	// 扫描当前目录
+	path_list, err := os.ReadDir(path)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// 过滤文件
+	file_list := make([]string, 0, len(path_list))
+
+	for i := 0; i < len(path_list); i++ {
+		if path_list[i].IsDir() {
+			file_list = append(file_list, "/"+path_list[i].Name())
+			continue
+		}
+		file_list = append(file_list, path_list[i].Name())
+	}
+	return file_list, nil
+}

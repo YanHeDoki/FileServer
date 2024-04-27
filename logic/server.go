@@ -1,32 +1,30 @@
 package logic
 
 import (
-	"FileServerFiber/utils"
 	"fmt"
 	"io"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+
+	"FileServerFiber/utils"
 )
 
 // GetFileList 遍历当前目录返回
 func GetFileList(c *fiber.Ctx) error {
 
-	// 扫描当前目录
-	path_list, err := os.ReadDir(".")
-
-	if err != nil {
-		return err
+	// 检查参数
+	in_path := c.Params("*")
+	get_path := "./"
+	// 有期望进入的目录
+	if in_path != "" {
+		get_path += in_path
 	}
 
-	// 过滤文件
-	file_list := make([]string, 0, len(path_list))
-
-	for i := 0; i < len(path_list); i++ {
-		if path_list[i].IsDir() {
-			continue
-		}
-		file_list = append(file_list, path_list[i].Name())
+	file_list, err := utils.GetFiles(get_path)
+	if err != nil {
+		fmt.Println(err)
+		return c.SendStatus(fiber.StatusNotFound)
 	}
 
 	// 返回目录文件列表
