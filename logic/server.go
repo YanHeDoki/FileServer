@@ -100,7 +100,7 @@ func Tmpl(c *fiber.Ctx) error {
 
 	// 定义startsWith函数
 	funcMap := template.FuncMap{
-		"startsWith": func(s, prefix string) bool {
+		"starts_with": func(s, prefix string) bool {
 			return strings.HasPrefix(s, prefix)
 		},
 		"add_path": func(p string) string {
@@ -115,7 +115,7 @@ func Tmpl(c *fiber.Ctx) error {
 			if original_url == "/" {
 				original_url = ""
 			}
-			return c.BaseURL() + "/download" + c.OriginalURL() + "/" + p
+			return c.BaseURL() + "/download" + original_url + "/" + p
 		},
 	}
 
