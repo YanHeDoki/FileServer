@@ -2,8 +2,10 @@ package logic
 
 import (
 	"fmt"
+	"html/template"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -90,6 +92,72 @@ func MyDownloadFile(c *fiber.Ctx) error {
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
-	fmt.Println(read_size)
+	fmt.Println("file read size:", read_size)
 	return nil
+}
+
+func Tmpl(c *fiber.Ctx) error {
+
+	// 定义startsWith函数
+	funcMap := template.FuncMap{
+		"startsWith": func(s, prefix string) bool {
+			return strings.HasPrefix(s, prefix)
+		},
+		"add_path": func(p string) string {
+			original_url := c.OriginalURL()
+			if original_url == "/" {
+				original_url = ""
+			}
+			return c.BaseURL() + original_url + p
+		},
+		"download_path": func(p string) string {
+			original_url := c.OriginalURL()
+			if original_url == "/" {
+				original_url = ""
+			}
+			return c.BaseURL() + "/download" + c.OriginalURL() + "/" + p
+		},
+	}
+
+	t1, err := template.New("index.html").Funcs(funcMap).ParseFiles("./tmpl/index.html")
+	if err != nil {
+		panic(err)
+	}
+
+	// 检查参数
+	in_path := c.Params("*")
+	get_path := "./"
+
+	// 有期望进入的目录
+	if in_path != "" {
+		get_path += in_path
+	}
+
+	// 获取当前请求的路径
+	uri := string(c.Request().URI().Path())
+	parent_patch := getParentPath(uri)
+
+	file_list, err := utils.GetFiles(get_path)
+	if err != nil {
+		fmt.Println(err)
+		return c.SendStatus(fiber.StatusNotFound)
+	}
+
+	dateMap := map[string]any{"file_list": file_list, "current_path": uri, "parent_patch": parent_patch}
+	c.Set("Content-Type", "text/html")
+	return t1.Execute(c.Response().BodyWriter(), dateMap)
+}
+
+// getParentPath 返回给定路径的父级路径
+func getParentPath(p string) string {
+	// 找到最后一个斜杠的位置
+	lastSlashIdx := strings.LastIndexByte(p, '/')
+	// 如果没有斜杠，返回根路径
+	if lastSlashIdx == -1 {
+		return "/"
+	} else if lastSlashIdx == 0 { // 如果最后一个 / 是在头部也去掉
+		return "/"
+	}
+	// 返回从开始到最后一个斜杠的部分
+	return p[:lastSlashIdx]
 }

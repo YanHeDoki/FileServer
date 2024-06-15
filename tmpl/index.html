@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<body>
+    <div><a href="{{.parent_patch}}">/..</a></div>
+    {{range $value :=.file_list}}
+        {{if startsWith $value "/"}}
+        <div><a href="{{add_path $value}}">{{$value}}</a></div>
+        {{else}}
+        <div><a href="{{download_path $value}}">{{$value}}</a></div>
+        {{end}}
+    {{end}}
+</body>
+</html>
