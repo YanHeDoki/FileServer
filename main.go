@@ -2,6 +2,8 @@ package main
 
 import (
 	"FileServerFiber/logic"
+	"flag"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -10,6 +12,8 @@ import (
 
 func main() {
 
+	port := flag.Int("p", 4000, "启动端口")
+	flag.Parse()
 	engine := html.New("./tmpl", ".html")
 
 	app := fiber.New(fiber.Config{
@@ -22,6 +26,6 @@ func main() {
 
 	app.Get("/*", logic.Tmpl)
 
-	app.Listen(":9512")
+	app.Listen(fmt.Sprintf(":%d", *port))
 
 }
